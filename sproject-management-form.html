@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Project Management Form</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h2>Project Management Form</h2>
+        <form id="projectForm" method="post">
+            <div class="form-group">
+                <span><label for="projectID">Project ID:</label> <label id="projectIDMsg"></label></span>
+                <input type="text" class="form-control" name="projectID" id="projectID" placeholder="Enter Project ID" required>
+            </div>
+            <div class="form-group">
+                <label for="projectName">Project Name:</label>
+                <input type="text" class="form-control" id="projectName" placeholder="Enter Project Name" name="projectName">
+            </div>
+            <div class="form-group">
+                <label for="assignedTo">Assigned To:</label>
+                <input type="text" class="form-control" id="assignedTo" placeholder="Enter Assigned To" name="assignedTo">
+            </div>
+            <div class="form-group">
+                <label for="assignmentDate">Assignment Date:</label>
+                <input type="date" class="form-control" id="assignmentDate" name="assignmentDate">
+            </div>
+            <div class="form-group">
+                <label for="deadline">Deadline:</label>
+                <input type="date" class="form-control" id="deadline" name="deadline">
+            </div>
+            <input type="button" class="btn btn-primary" id="projectSave" value="Save" onclick="saveProject();">
+        </form>
+    </div>
+
+    <script>
+        $("#projectID").focus();
+
+        function validateAndGetFormData() {
+            var projectIDVar = $("#projectID").val();
+            if (projectIDVar === "") {
+                alert("Project ID is a required field");
+                $("#projectID").focus();
+                return "";
+            }
+
+            var projectNameVar = $("#projectName").val();
+            if (projectNameVar === "") {
+                alert("Project Name is a required field");
+                $("#projectName").focus();
+                return "";
+            }
+
+            var assignedToVar = $("#assignedTo").val();
+            if (assignedToVar === "") {
+                alert("Assigned To is a required field");
+                $("#assignedTo").focus();
+                return "";
+            }
+
+            var assignmentDateVar = $("#assignmentDate").val();
+            if (assignmentDateVar === "") {
+                alert("Assignment Date is a required field");
+                $("#assignmentDate").focus();
+                return "";
+            }
+
+            var deadlineVar = $("#deadline").val();
+            if (deadlineVar === "") {
+                alert("Deadline is a required field");
+                $("#deadline").focus();
+                return "";
+            }
+
+            var jsonStrObj = {
+                projectID: projectIDVar,
+                projectName: projectNameVar,
+                assignedTo: assignedToVar,
+                assignmentDate: assignmentDateVar,
+                deadline: deadlineVar
+            };
+
+            return JSON.stringify(jsonStrObj);
+        }
+
+        function createPUTRequest(connToken, jsonObj, dbName, relName) {
+            var putRequest = "{\n" +
+                "\"token\" : \"" + connToken + "\",\n" +
+                "\"dbName\": \"" + dbName + "\",\n" +
+                "\"cmd\" : \"PUT\",\n" +
+                "\"rel\" : \"" + relName + "\",\n" +
+                "\"jsonStr\": \n" +
+                jsonObj +
+                "\n" +
+                "}";
+            return putRequest;
+        }
+
+        function executeCommand(reqString, dbBaseUrl, apiEndPointUrl) {
+            var url = dbBaseUrl + apiEndPointUrl;
+            var jsonObj;
+            $.post(url, reqString, function (result) {
+                jsonObj = JSON.parse(result);
+            }).fail(function (result) {
+                var dataJsonObj = result.responseText;
+                jsonObj = JSON.parse(dataJsonObj);
+            });
+            return jsonObj;
+        }
+
+        function resetForm() {
+            $("#projectID").val("");
+            $("#projectName").val("");
+            $("#assignedTo").val("");
+            $("#assignmentDate").val("");
+            $("#deadline").val("");
+            $("#projectID").focus();
+        }
+
+        function saveProject() {
+            var jsonStr = validateAndGetFormData();
+            if (jsonStr === "") {
+                return;
+            }
+
+            var putReqStr = createPUTRequest("90936861|-31948784479254024|90932362",
+                jsonStr, "COLLEGE-DB", "PROJECT-TABLE");
+
+            alert(putReqStr);
+            jQuery.ajaxSetup({ async: false });
+            var resultObj = executeCommand(putReqStr,
+                "http://api.login2explore.com:5577", "/api/iml");
+            alert(JSON.stringify(resultObj));
+            jQuery.ajaxSetup({ async: true });
+            resetForm();
+        }
+    </script>
+</body>
+</html>
